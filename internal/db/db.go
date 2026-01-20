@@ -95,9 +95,38 @@ func NewPostgresDBFromDatabaseConfig(cfg config.DatabaseConfig) (*gorm.DB, error
 		return nil, fmt.Errorf("failed to get sql.DB from gorm DB: %w", err)
 	}
 
-	sqlDB.SetConnMaxLifetime(time.Minute * 30)
-	sqlDB.SetMaxIdleConns(10)
-	sqlDB.SetMaxOpenConns(100)
+	// 配置连接池参数
+	maxOpenConns := cfg.MaxOpenConns
+	if maxOpenConns == 0 {
+		maxOpenConns = 100
+	}
+	sqlDB.SetMaxOpenConns(maxOpenConns)
+
+	maxIdleConns := cfg.MaxIdleConns
+	if maxIdleConns == 0 {
+		maxIdleConns = 10
+	}
+	sqlDB.SetMaxIdleConns(maxIdleConns)
+
+	connMaxLifetime := time.Duration(cfg.ConnMaxLifetime) * time.Second
+	if connMaxLifetime == 0 {
+		connMaxLifetime = time.Hour
+	}
+	sqlDB.SetConnMaxLifetime(connMaxLifetime)
+
+	connMaxIdleTime := time.Duration(cfg.ConnMaxIdleTime) * time.Second
+	if connMaxIdleTime == 0 {
+		connMaxIdleTime = 10 * time.Minute
+	}
+	sqlDB.SetConnMaxIdleTime(connMaxIdleTime)
+
+	// 预热连接池
+	if err := sqlDB.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping database: %w", err)
+	}
+
+	log.Printf("Database connection pool configured: max_open=%d, max_idle=%d, max_lifetime=%v, max_idle_time=%v\n",
+		maxOpenConns, maxIdleConns, connMaxLifetime, connMaxIdleTime)
 
 	return db, nil
 }

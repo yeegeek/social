@@ -58,10 +58,8 @@ type service struct {
 
 // NewService creates a new authentication service using typed config
 func NewService(cfg *config.JWTConfig) Service {
+	// JWT Secret 必须通过配置验证，不再提供默认值
 	jwtSecret := cfg.Secret
-	if jwtSecret == "" {
-		jwtSecret = "default-secret-change-in-production"
-	}
 
 	accessTokenTTL := cfg.AccessTokenTTL
 	if accessTokenTTL == 0 {
@@ -86,10 +84,8 @@ func NewService(cfg *config.JWTConfig) Service {
 
 // NewServiceWithRepo creates a new authentication service with refresh token repository
 func NewServiceWithRepo(cfg *config.JWTConfig, db *gorm.DB) Service {
+	// JWT Secret 必须通过配置验证，不再提供默认值
 	jwtSecret := cfg.Secret
-	if jwtSecret == "" {
-		jwtSecret = "default-secret-change-in-production"
-	}
 
 	accessTokenTTL := cfg.AccessTokenTTL
 	if accessTokenTTL == 0 {

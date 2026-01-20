@@ -26,6 +26,10 @@ database:
   password: ""                      # Override with DATABASE_PASSWORD (recommended)
   name: "uyou_api"                      # Override with DATABASE_NAME
   sslmode: "disable"                # Override with DATABASE_SSLMODE
+  max_open_conns: 100               # Override with DATABASE_MAX_OPEN_CONNS
+  max_idle_conns: 10                # Override with DATABASE_MAX_IDLE_CONNS
+  conn_max_lifetime: 3600           # Override with DATABASE_CONN_MAX_LIFETIME (秒)
+  conn_max_idle_time: 600           # Override with DATABASE_CONN_MAX_IDLE_TIME (秒)
 
 jwt:
   access_token_ttl: "15m"           # Override with JWT_ACCESS_TOKEN_TTL
@@ -42,6 +46,9 @@ server:
 
 logging:
   level: "info"                     # Override with LOGGING_LEVEL (debug|info|warn|error)
+  format: "json"                    # Override with LOGGING_FORMAT (json|text)
+  output: "stdout"                  # Override with LOGGING_OUTPUT (stdout|file)
+  file: "/var/log/app.log"          # Override with LOGGING_FILE
 
 ratelimit:
   enabled: true                     # Override with RATELIMIT_ENABLED
@@ -106,4 +113,16 @@ metrics:
 scheduler:
   enabled: true
   timezone: "Asia/Shanghai"
+
+# 安全配置
+security:
+  bcrypt_cost: 12                   # Override with SECURITY_BCRYPT_COST (10-14 推荐)
+  password_min_length: 8            # Override with SECURITY_PASSWORD_MIN_LENGTH
+  password_require_uppercase: true  # Override with SECURITY_PASSWORD_REQUIRE_UPPERCASE
+  password_require_lowercase: true  # Override with SECURITY_PASSWORD_REQUIRE_LOWERCASE
+  password_require_number: true     # Override with SECURITY_PASSWORD_REQUIRE_NUMBER
+  password_require_special: true    # Override with SECURITY_PASSWORD_REQUIRE_SPECIAL
+  max_login_attempts: 5             # Override with SECURITY_MAX_LOGIN_ATTEMPTS
+  lockout_duration: 15              # Override with SECURITY_LOCKOUT_DURATION (分钟)
+  enable_security_headers: true     # Override with SECURITY_ENABLE_SECURITY_HEADERS
 

@@ -55,6 +55,23 @@ UYou Go API Starter 是一个高质量的 Go 语言 REST API 起始模板，专�
 
 ## 快速开始
 
+### ⚠️ 重要：安全配置
+
+**在启动应用之前，必须配置 JWT Secret**：
+
+```bash
+# 设置环境变量
+export JWT_SECRET="your-32-character-or-longer-secret-key-here"
+
+# 或在 .env 文件中设置
+echo 'JWT_SECRET="your-32-character-or-longer-secret-key-here"' >> .env
+```
+
+**生成安全的随机密钥**：
+```bash
+openssl rand -base64 32
+```
+
 ### 前置要求
 
 - [Docker](https://docs.docker.com/get-docker/) 和 [Docker Compose](https://docs.docker.com/compose/install/)

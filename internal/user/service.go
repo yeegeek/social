@@ -8,6 +8,8 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+
+	"github.com/uyou/uyou-go-api-starter/internal/config"
 )
 
 var (
@@ -33,13 +35,23 @@ type Service interface {
 }
 
 type service struct {
-	repo Repository
+	repo              Repository
+	passwordValidator *PasswordValidator
+	bcryptCost        int
 }
 
 // NewService creates a new user service
-func NewService(repo Repository) Service {
+func NewService(repo Repository, cfg *config.SecurityConfig) Service {
+	// 设置默认值
+	bcryptCost := 12
+	if cfg.BcryptCost > 0 {
+		bcryptCost = cfg.BcryptCost
+	}
+
 	return &service{
-		repo: repo,
+		repo:              repo,
+		passwordValidator: NewPasswordValidator(cfg),
+		bcryptCost:        bcryptCost,
 	}
 }
 
@@ -53,7 +65,12 @@ func (s *service) RegisterUser(ctx context.Context, req RegisterRequest) (*User,
 		return nil, ErrEmailExists
 	}
 
-	hashedPassword, err := hashPassword(req.Password)
+	// 验证密码强度
+	if err := s.passwordValidator.Validate(req.Password); err != nil {
+		return nil, fmt.Errorf("password validation failed: %w", err)
+	}
+
+	hashedPassword, err := s.hashPassword(req.Password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
@@ -211,8 +228,8 @@ func (s *service) PromoteToAdmin(ctx context.Context, userID uint) error {
 }
 
 // hashPassword hashes a plain text password using bcrypt
-func hashPassword(password string) (string, error) {
-	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+func (s *service) hashPassword(password string) (string, error) {
+	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), s.bcryptCost)
 	if err != nil {
 		return "", err
 	}

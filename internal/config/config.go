@@ -27,6 +27,7 @@ type Config struct {
 	GRPC       GRPCConfig       `mapstructure:"grpc" yaml:"grpc"`
 	Metrics    MetricsConfig    `mapstructure:"metrics" yaml:"metrics"`
 	Scheduler  SchedulerConfig  `mapstructure:"scheduler" yaml:"scheduler"`
+	Security   SecurityConfig   `mapstructure:"security" yaml:"security"`
 }
 
 // SchedulerConfig 定时任务配置
@@ -43,12 +44,16 @@ type AppConfig struct {
 }
 
 type DatabaseConfig struct {
-	Host     string `mapstructure:"host" yaml:"host"`
-	Port     int    `mapstructure:"port" yaml:"port"`
-	User     string `mapstructure:"user" yaml:"user"`
-	Password string `mapstructure:"password" yaml:"password"`
-	Name     string `mapstructure:"name" yaml:"name"`
-	SSLMode  string `mapstructure:"sslmode" yaml:"sslmode"`
+	Host            string `mapstructure:"host" yaml:"host"`
+	Port            int    `mapstructure:"port" yaml:"port"`
+	User            string `mapstructure:"user" yaml:"user"`
+	Password        string `mapstructure:"password" yaml:"password"`
+	Name            string `mapstructure:"name" yaml:"name"`
+	SSLMode         string `mapstructure:"sslmode" yaml:"sslmode"`
+	MaxOpenConns    int    `mapstructure:"max_open_conns" yaml:"max_open_conns"`
+	MaxIdleConns    int    `mapstructure:"max_idle_conns" yaml:"max_idle_conns"`
+	ConnMaxLifetime int    `mapstructure:"conn_max_lifetime" yaml:"conn_max_lifetime"` // 秒
+	ConnMaxIdleTime int    `mapstructure:"conn_max_idle_time" yaml:"conn_max_idle_time"` // 秒
 }
 
 type JWTConfig struct {
@@ -68,7 +73,10 @@ type ServerConfig struct {
 }
 
 type LoggingConfig struct {
-	Level string `mapstructure:"level" yaml:"level"`
+	Level  string `mapstructure:"level" yaml:"level"`   // debug, info, warn, error
+	Format string `mapstructure:"format" yaml:"format"` // json, text
+	Output string `mapstructure:"output" yaml:"output"` // stdout, file
+	File   string `mapstructure:"file" yaml:"file"`     // 日志文件路径
 }
 
 type RateLimitConfig struct {
@@ -137,6 +145,28 @@ type MetricsConfig struct {
 	Enabled bool   `mapstructure:"enabled" yaml:"enabled"`
 	Port    string `mapstructure:"port" yaml:"port"`
 	Path    string `mapstructure:"path" yaml:"path"`
+}
+
+// SecurityConfig 安全配置
+type SecurityConfig struct {
+	// Bcrypt 成本因子（推荐 10-14）
+	BcryptCost int `mapstructure:"bcrypt_cost" yaml:"bcrypt_cost"`
+	// 密码最小长度
+	PasswordMinLength int `mapstructure:"password_min_length" yaml:"password_min_length"`
+	// 密码需要大写字母
+	PasswordRequireUppercase bool `mapstructure:"password_require_uppercase" yaml:"password_require_uppercase"`
+	// 密码需要小写字母
+	PasswordRequireLowercase bool `mapstructure:"password_require_lowercase" yaml:"password_require_lowercase"`
+	// 密码需要数字
+	PasswordRequireNumber bool `mapstructure:"password_require_number" yaml:"password_require_number"`
+	// 密码需要特殊字符
+	PasswordRequireSpecial bool `mapstructure:"password_require_special" yaml:"password_require_special"`
+	// 最大登录尝试次数
+	MaxLoginAttempts int `mapstructure:"max_login_attempts" yaml:"max_login_attempts"`
+	// 账户锁定时间（分钟）
+	LockoutDuration int `mapstructure:"lockout_duration" yaml:"lockout_duration"`
+	// 启用安全响应头
+	EnableSecurityHeaders bool `mapstructure:"enable_security_headers" yaml:"enable_security_headers"`
 }
 
 // LoadConfig loads configuration using Viper. If configPath is non-empty it
