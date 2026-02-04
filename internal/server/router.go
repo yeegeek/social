@@ -13,11 +13,12 @@ import (
 	"github.com/yeegeek/uyou-go-api-starter/internal/errors"
 	"github.com/yeegeek/uyou-go-api-starter/internal/health"
 	"github.com/yeegeek/uyou-go-api-starter/internal/middleware"
+	"github.com/yeegeek/uyou-go-api-starter/internal/friend"
 	"github.com/yeegeek/uyou-go-api-starter/internal/user"
 )
 
 // SetupRouter creates and configures the Gin router
-func SetupRouter(userHandler *user.Handler, authService auth.Service, cfg *config.Config, db *gorm.DB) *gin.Engine {
+func SetupRouter(userHandler *user.Handler, friendHandler *friend.Handler, authService auth.Service, cfg *config.Config, db *gorm.DB) *gin.Engine {
 	router := gin.New()
 
 	if cfg.App.Environment == "production" {
@@ -107,6 +108,23 @@ func SetupRouter(userHandler *user.Handler, authService auth.Service, cfg *confi
 			adminGroup.GET("/users/:id", userHandler.GetUser)
 			adminGroup.PUT("/users/:id", userHandler.UpdateUser)
 			adminGroup.DELETE("/users/:id", userHandler.DeleteUser)
+		}
+
+		// Friend endpoints
+		friendsGroup := v1.Group("/friends")
+		friendsGroup.Use(auth.AuthMiddleware(authService))
+		{
+			friendsGroup.GET("", friendHandler.GetFriendsList)
+			friendsGroup.POST("/request", friendHandler.SendFriendRequest)
+			friendsGroup.GET("/requests", friendHandler.GetFriendRequests)
+			friendsGroup.POST("/requests/:id/accept", friendHandler.AcceptFriendRequest)
+			friendsGroup.POST("/requests/:id/reject", friendHandler.RejectFriendRequest)
+			friendsGroup.DELETE("/:id", friendHandler.DeleteFriend)
+			friendsGroup.PUT("/:id/remark", friendHandler.UpdateFriendRemark)
+			friendsGroup.PUT("/:id/group", friendHandler.UpdateFriendGroup)
+			friendsGroup.POST("/:id/block", friendHandler.BlockUser)
+			friendsGroup.DELETE("/:id/unblock", friendHandler.UnblockUser)
+			friendsGroup.GET("/blocked", friendHandler.GetBlockedUsers)
 		}
 	}
 

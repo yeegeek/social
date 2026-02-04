@@ -17,6 +17,7 @@ import (
 	"github.com/yeegeek/uyou-go-api-starter/internal/config"
 	"github.com/yeegeek/uyou-go-api-starter/internal/db"
 	"github.com/yeegeek/uyou-go-api-starter/internal/migrate"
+	"github.com/yeegeek/uyou-go-api-starter/internal/friend"
 	"github.com/yeegeek/uyou-go-api-starter/internal/server"
 	"github.com/yeegeek/uyou-go-api-starter/internal/user"
 )
@@ -83,7 +84,11 @@ func run() error {
 	userService := user.NewService(userRepo, &cfg.Security)
 	userHandler := user.NewHandler(userService, authService)
 
-	router := server.SetupRouter(userHandler, authService, cfg, database)
+	friendRepo := friend.NewRepository(database)
+	friendService := friend.NewService(friendRepo)
+	friendHandler := friend.NewHandler(friendService)
+
+	router := server.SetupRouter(userHandler, friendHandler, authService, cfg, database)
 
 	port := cfg.Server.Port
 	if port == "" {
