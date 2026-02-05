@@ -20,11 +20,11 @@ app:
   debug: true                       # Override with APP_DEBUG
 
 database:
-  host: "db"                        # Override with DATABASE_HOST
+  host: "localhost"                        # Override with DATABASE_HOST
   port: 5432                        # Override with DATABASE_PORT  
-  user: "postgres"                  # Override with DATABASE_USER
-  password: ""                      # Override with DATABASE_PASSWORD (recommended)
-  name: "uyou_api"                      # Override with DATABASE_NAME
+  user: "social_user"                  # Override with DATABASE_USER
+  password: "social_pass123"                      # Override with DATABASE_PASSWORD (recommended)
+  name: "social_network"                      # Override with DATABASE_NAME
   sslmode: "disable"                # Override with DATABASE_SSLMODE
   max_open_conns: 100               # Override with DATABASE_MAX_OPEN_CONNS
   max_idle_conns: 10                # Override with DATABASE_MAX_IDLE_CONNS

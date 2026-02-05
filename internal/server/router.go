@@ -14,11 +14,15 @@ import (
 	"github.com/yeegeek/uyou-go-api-starter/internal/health"
 	"github.com/yeegeek/uyou-go-api-starter/internal/middleware"
 	"github.com/yeegeek/uyou-go-api-starter/internal/friend"
+	"github.com/yeegeek/uyou-go-api-starter/internal/message"
+	"github.com/yeegeek/uyou-go-api-starter/internal/notification"
+	"github.com/yeegeek/uyou-go-api-starter/internal/payment"
+	"github.com/yeegeek/uyou-go-api-starter/internal/post"
 	"github.com/yeegeek/uyou-go-api-starter/internal/user"
 )
 
 // SetupRouter creates and configures the Gin router
-func SetupRouter(userHandler *user.Handler, friendHandler *friend.Handler, authService auth.Service, cfg *config.Config, db *gorm.DB) *gin.Engine {
+func SetupRouter(userHandler *user.Handler, friendHandler *friend.Handler, messageHandler *message.Handler, postHandler *post.Handler, notificationHandler *notification.Handler, paymentHandler *payment.Handler, authService auth.Service, cfg *config.Config, db *gorm.DB) *gin.Engine {
 	router := gin.New()
 
 	if cfg.App.Environment == "production" {
@@ -125,6 +129,61 @@ func SetupRouter(userHandler *user.Handler, friendHandler *friend.Handler, authS
 			friendsGroup.POST("/:id/block", friendHandler.BlockUser)
 			friendsGroup.DELETE("/:id/unblock", friendHandler.UnblockUser)
 			friendsGroup.GET("/blocked", friendHandler.GetBlockedUsers)
+		}
+
+		// Message endpoints
+		messagesGroup := v1.Group("/messages")
+		messagesGroup.Use(auth.AuthMiddleware(authService))
+		{
+			messagesGroup.GET("/conversations", messageHandler.GetConversations)
+			messagesGroup.GET("/conversations/:conversation_id/messages", messageHandler.GetMessages)
+			messagesGroup.POST("/send", messageHandler.SendMessage)
+			messagesGroup.POST("/:message_id/read", messageHandler.MarkAsRead)
+			messagesGroup.POST("/conversations/:conversation_id/read", messageHandler.MarkConversationAsRead)
+			messagesGroup.POST("/:message_id/recall", messageHandler.RecallMessage)
+			messagesGroup.POST("/drafts", messageHandler.SaveDraft)
+			messagesGroup.GET("/drafts", messageHandler.GetDrafts)
+			messagesGroup.DELETE("/drafts/:draft_id", messageHandler.DeleteDraft)
+			messagesGroup.DELETE("/conversations/:conversation_id", messageHandler.DeleteConversation)
+		}
+
+		// Post endpoints
+		postsGroup := v1.Group("/posts")
+		postsGroup.Use(auth.AuthMiddleware(authService))
+		{
+			postsGroup.POST("", postHandler.CreatePost)
+			postsGroup.GET("", postHandler.GetPosts)
+			postsGroup.GET("/:post_id", postHandler.GetPost)
+			postsGroup.GET("/user/:user_id", postHandler.GetUserPosts)
+			postsGroup.PUT("/:post_id", postHandler.UpdatePost)
+			postsGroup.DELETE("/:post_id", postHandler.DeletePost)
+			postsGroup.POST("/:post_id/like", postHandler.LikePost)
+			postsGroup.POST("/:post_id/unlike", postHandler.UnlikePost)
+			postsGroup.POST("/comments", postHandler.CreateComment)
+			postsGroup.GET("/:post_id/comments", postHandler.GetComments)
+			postsGroup.DELETE("/comments/:comment_id", postHandler.DeleteComment)
+		}
+
+		// Notification endpoints
+		notificationsGroup := v1.Group("/notifications")
+		notificationsGroup.Use(auth.AuthMiddleware(authService))
+		{
+			notificationsGroup.GET("", notificationHandler.GetNotifications)
+			notificationsGroup.GET("/unread-count", notificationHandler.GetUnreadCount)
+			notificationsGroup.POST("/:notification_id/read", notificationHandler.MarkAsRead)
+			notificationsGroup.POST("/read-all", notificationHandler.MarkAllAsRead)
+			notificationsGroup.DELETE("/:notification_id", notificationHandler.DeleteNotification)
+		}
+
+		// Payment endpoints
+		paymentGroup := v1.Group("/payment")
+		paymentGroup.Use(auth.AuthMiddleware(authService))
+		{
+			paymentGroup.POST("/recharge", paymentHandler.Recharge)
+			paymentGroup.POST("/vip-upgrade", paymentHandler.VIPUpgrade)
+			paymentGroup.POST("/purchase", paymentHandler.Purchase)
+			paymentGroup.GET("/transactions", paymentHandler.GetTransactions)
+			paymentGroup.GET("/balance", paymentHandler.GetBalance)
 		}
 	}
 

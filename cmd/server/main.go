@@ -18,6 +18,10 @@ import (
 	"github.com/yeegeek/uyou-go-api-starter/internal/db"
 	"github.com/yeegeek/uyou-go-api-starter/internal/migrate"
 	"github.com/yeegeek/uyou-go-api-starter/internal/friend"
+	"github.com/yeegeek/uyou-go-api-starter/internal/message"
+	"github.com/yeegeek/uyou-go-api-starter/internal/notification"
+	"github.com/yeegeek/uyou-go-api-starter/internal/payment"
+	"github.com/yeegeek/uyou-go-api-starter/internal/post"
 	"github.com/yeegeek/uyou-go-api-starter/internal/server"
 	"github.com/yeegeek/uyou-go-api-starter/internal/user"
 )
@@ -88,7 +92,23 @@ func run() error {
 	friendService := friend.NewService(friendRepo)
 	friendHandler := friend.NewHandler(friendService)
 
-	router := server.SetupRouter(userHandler, friendHandler, authService, cfg, database)
+	messageRepo := message.NewRepository(database)
+	messageService := message.NewService(messageRepo)
+	messageHandler := message.NewHandler(messageService)
+
+	postRepo := post.NewRepository(database)
+	postService := post.NewService(postRepo)
+	postHandler := post.NewHandler(postService)
+
+	notificationRepo := notification.NewRepository(database)
+	notificationService := notification.NewService(notificationRepo)
+	notificationHandler := notification.NewHandler(notificationService)
+
+	paymentRepo := payment.NewRepository(database)
+	paymentService := payment.NewService(paymentRepo)
+	paymentHandler := payment.NewHandler(paymentService)
+
+	router := server.SetupRouter(userHandler, friendHandler, messageHandler, postHandler, notificationHandler, paymentHandler, authService, cfg, database)
 
 	port := cfg.Server.Port
 	if port == "" {
